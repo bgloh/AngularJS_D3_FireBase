@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- d3.js -->
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<!-- angularJS -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+<!-- fire base -->
+<script src="https://www.gstatic.com/firebasejs/4.1.3/firebase.js"></script>
+<!-- BOOTSTRAP -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+</head>
+<body ng-app="myApp" ng-controller="d3ChartController">
+<div class="container">
+  <pre>
+<h1>AngularJs + D3.js + FireBase</h1>
+</pre>
+  <d3-chart data= "data1" color = "green" radius = "50"></d3-chart>
+  <p>data1:  {{data1}} </p>
+ <d3-chart data="[{x: 10, y: 10}, {x: 150, y: 50}, {x: 400, y: 150}]
+" color = "red" radius = "20"></d3-chart>
+<pre> serviceTest : {{sayHello}} </pre>
+<d3-list data="['John','Tom','Scott','Simson']"></d3-list>
+<div ng-app='myApp' ng-controller='firebaseController as fire'>
+  <pre><h4>firebase database trial</h4>
+  <input type = "submit" class="btn-warning" ng-disabled = "buttonDisable" value="initialize" ng-click="fire.init()"></input>
+  <input type = "submit" class="btn-primary" ng-disabled = "buttonDisable" value="synchonize" ng-click="fire.sync()"></input>
+</pre>
+  <div class="container">
+    <table class ="table table-striped" >
+      <thead>
+      <tr>
+        <th>name</th><th>math</th><th>chem</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="sc in scores">
+        <td>{{ sc.name }}</td><td>{{ sc.math }}</td><td>{{ sc.chem }}</td>
+      </tr>
+    </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</div>
+</html>
+
+
+<script>
+
+// Initialize Firebase
+var config = {
+  apiKey: "AIzaSyCw60BOszhENj-UiNMvDyKsZco29U1sMxk",
+  authDomain: "myfirstfirebaseprojec1.firebaseapp.com",
+  databaseURL: "https://myfirstfirebaseprojec1.firebaseio.com",
+  projectId: "myfirstfirebaseprojec1",
+  storageBucket: "myfirstfirebaseprojec1.appspot.com",
+  messagingSenderId: "992600788216"
+};
+
+var app = angular.module('myApp', []);
+
+// firebase controller
+app.controller('firebaseController', ['$scope',firebaseController]);
+function firebaseController($scope){
+  this.init = function(){
+    var firebaseInit = firebase.initializeApp(config);
+    var database = firebase.database();
+    this.databaseReference = database.ref().child('scores');
+  };
+
+  this.sync = function(){
+    this.databaseReference.on('value', function(snap){
+    var scoreDatabase = snap.val();
+      var names = Object.keys(scoreDatabase);
+      var values = Object.keys(scoreDatabase).map(function(k) { return scoreDatabase[k] });
+     values.forEach(function(element,index) {element.name = names[index]});
+     // disable buttons
+     $scope.buttonDisable = 1;
+
+     $scope.scores = values;
+     // update $scope variables
+     $scope.$apply();
+
+  })};
+}
+
+// controller with a service injection
+app.controller('d3ChartController',['$scope','testFactory',d3ChartController]);
+function d3ChartController($scope, testFactory){
+  $scope.variable1 = [{a:10, b:50},{city: "Seoul", loc: 24.7}];
+  $scope.data1 = [{x: 10, y: 10}, {x: 300, y: 50}, {x: 600, y: 150}];
+  $scope.sayHello = testFactory.sayHello("to the World !!");
+}
+
+app.factory('testFactory', function(){
+return {
+    sayHello: function(text){
+        return "Factory says \"Hello " + text + "\"";
+    },
+    sayGoodbye: function(text){
+        return "Factory says \"Goodbye " + text + "\"";
+    }
+}});
+
+app.directive('d3Chart', function(){
+  return {
+    scope: { data: '=' , radius: '=', color:'='},
+    restrict: 'E',
+    controller:'d3ChartController',
+    template: "<pre>d3.js chart</pre>",
+    link: link
+  };
+  function link(scope, element,attributes) {
+    // the D3 bits..
+    var margin = {top: 50, right: 40, bottom: 20, left: 120},
+    width = 960 - margin.left - margin.right,
+    height = 240 - margin.top - margin.bottom;
+
+    var color2 = d3.scale.category10();
+    var el = element[0];
+    //var width = el.clientWidth;
+    //var height = el.clientHeight;
+    var svg = d3.select(el).append('svg')
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var circles = svg.selectAll("circle")
+        .data(scope.data)
+        .enter().append("circle")
+        .attr("cx", function(d){return d.x;})
+        .attr("cy", function(d){return d.y;})
+        .attr("r", scope.radius)
+        .style("fill", attributes.color)
+        console.log(width);
+        console.log(scope.variable1[0]);
+  }
+});
+
+app.directive('d3List', function(){
+  return {
+    scope: { data: '=' , radius: '=', color:'='},
+    restrict: 'E',
+  //  controller:'d3ListController',
+    template: '<pre>d3.js list </pre>data: {{data}}',
+    link: link
+  };
+  function link(scope, element,attributes) {
+    // the D3 bits..
+
+    d3.select(element[0]).append("ul").selectAll("li")
+        .data(scope.data)
+        .enter().append("li")
+        .attr("class","list-group")
+        .html(String);
+
+  }
+});
+
+</script>
