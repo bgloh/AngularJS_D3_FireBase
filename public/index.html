@@ -24,13 +24,10 @@
 <pre> serviceTest : {{sayHello}} </pre>
 <d3-list data="['John','Tom','Scott','Simson']"></d3-list>
 <div ng-app='myApp' ng-controller='firebaseController as fire'>
-  <pre><h4>firebase database trial</h4></pre>
+  <pre><h4>firebase database trial</h4>
   <input type = "submit" class="btn-warning" ng-disabled = "buttonDisable" value="initialize" ng-click="fire.init()"></input>
-  <input type = "submit" class="btn-primary"  value="Read" ng-click="fire.read()"></input>
-  <input type = "submit" class="btn-primary"  value="update" ng-click="fire.update()"></input>
   <input type = "submit" class="btn-primary" ng-disabled = "buttonDisable" value="synchonize" ng-click="fire.sync()"></input>
-  <input type = "submit" class="btn-primary"  value="set" ng-click="fire.set()"></input>
-
+</pre>
   <div class="container">
     <table class ="table table-striped" >
       <thead>
@@ -68,31 +65,12 @@ var app = angular.module('myApp', []);
 // firebase controller
 app.controller('firebaseController', ['$scope',firebaseController]);
 function firebaseController($scope){
-// init
   this.init = function(){
     var firebaseInit = firebase.initializeApp(config);
     var database = firebase.database();
     this.databaseReference = database.ref().child('scores');
   };
-//read
-// update
-  this.read = function(){
-    this.databaseReference.on('value', function(snap){
-      console.log(snap.val());
-    });
 
-};
-
-//set
-  this.set = function(){
-   this.databaseReference.set({"Bob" : {"math" : 35, "chem": 48}});
-  };
-
-// update
-  this.update = function(){
-  this.databaseReference.update({"May" : {"math" : 95, "chem": 98}});
-  };
-// sync
   this.sync = function(){
     this.databaseReference.on('value', function(snap){
     var scoreDatabase = snap.val();
@@ -106,8 +84,7 @@ function firebaseController($scope){
      // update $scope variables
      $scope.$apply();
 
-  })
-};
+  })};
 }
 
 // controller with a service injection
